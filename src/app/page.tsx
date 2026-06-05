@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [componentName, setComponentName] = useState("");
+  const [generatedMarkdown, setGeneratedMarkdown] = useState("");
 
   const editor = useEditor({
     extensions: [StarterKit, Image],
@@ -25,10 +27,30 @@ export default function Home() {
     if (!file) return;
 
     const imageUrl = URL.createObjectURL(file);
-
     editor?.chain().focus().setImage({ src: imageUrl }).run();
 
     event.target.value = "";
+  }
+
+  function generateDocumentation() {
+    const draftHtml = editor?.getHTML() || "";
+
+    const markdown = `# ${componentName || "Untitled Component"}
+
+## Purpose
+
+Describe what this component is for.
+
+## Draft source
+
+${draftHtml}
+
+## Notes
+
+This is a temporary generated document. Next step: connect AI to rewrite this into clean Markdown.
+`;
+
+    setGeneratedMarkdown(markdown);
   }
 
   return (
@@ -44,6 +66,8 @@ export default function Home() {
             <input
               type="text"
               placeholder="PLBlockHeader"
+              value={componentName}
+              onChange={(event) => setComponentName(event.target.value)}
               className="w-full rounded border border-zinc-700 bg-zinc-900 p-3"
             />
           </div>
@@ -54,25 +78,60 @@ export default function Home() {
             </label>
 
             <div className="mb-3 flex flex-wrap gap-2">
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}>
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                }
+              >
                 H1
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>
+
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                }
+              >
                 H2
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}>
+
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 3 }).run()
+                }
+              >
                 H3
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleBold().run()}>
+
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+              >
                 Bold
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleBulletList().run()}>
+
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={() =>
+                  editor?.chain().focus().toggleBulletList().run()
+                }
+              >
                 Bullets
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleCode().run()}>
+
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={() => editor?.chain().focus().toggleCode().run()}
+              >
                 Code
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={openImagePicker}>
+
+              <button
+                className="rounded bg-zinc-800 px-3 py-2"
+                onClick={openImagePicker}
+              >
                 Add image
               </button>
 
@@ -90,9 +149,21 @@ export default function Home() {
             </div>
           </div>
 
-          <button className="rounded bg-white px-6 py-3 text-black">
+          <button
+            className="rounded bg-white px-6 py-3 text-black"
+            onClick={generateDocumentation}
+          >
             Generate Documentation
           </button>
+
+          {generatedMarkdown && (
+            <div className="mt-8 rounded border border-zinc-700 bg-zinc-900 p-4">
+              <h2 className="mb-4 text-2xl font-bold">Generated Markdown</h2>
+              <pre className="whitespace-pre-wrap text-sm text-zinc-200">
+                {generatedMarkdown}
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     </main>
