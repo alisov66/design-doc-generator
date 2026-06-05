@@ -14,6 +14,8 @@ export default function Home() {
   const [generatedMarkdown, setGeneratedMarkdown] = useState("");
   const [generatedHtml, setGeneratedHtml] = useState("");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("formatted");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [hasGeneratedPreview, setHasGeneratedPreview] = useState(false);
 
   const editor = useEditor({
     extensions: [StarterKit, Image],
@@ -72,6 +74,8 @@ This is a temporary generated document. Next step: connect AI to rewrite this in
     setGeneratedMarkdown(markdown);
     setGeneratedHtml(html);
     setPreviewMode("formatted");
+    setHasGeneratedPreview(true);
+    setIsPreviewOpen(true);
   }
 
   return (
@@ -98,74 +102,85 @@ This is a temporary generated document. Next step: connect AI to rewrite this in
               Documentation Draft
             </label>
 
-            <div className="mb-3 flex flex-wrap gap-2">
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={() =>
-                  editor?.chain().focus().toggleHeading({ level: 1 }).run()
-                }
-              >
-                H1
-              </button>
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={() =>
+                    editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                  }
+                >
+                  H1
+                </button>
 
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={() =>
-                  editor?.chain().focus().toggleHeading({ level: 2 }).run()
-                }
-              >
-                H2
-              </button>
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={() =>
+                    editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                  }
+                >
+                  H2
+                </button>
 
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={() =>
-                  editor?.chain().focus().toggleHeading({ level: 3 }).run()
-                }
-              >
-                H3
-              </button>
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={() =>
+                    editor?.chain().focus().toggleHeading({ level: 3 }).run()
+                  }
+                >
+                  H3
+                </button>
 
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-              >
-                Bold
-              </button>
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                >
+                  Bold
+                </button>
 
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={() =>
-                  editor?.chain().focus().toggleBulletList().run()
-                }
-              >
-                Bullets
-              </button>
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={() =>
+                    editor?.chain().focus().toggleBulletList().run()
+                  }
+                >
+                  Bullets
+                </button>
 
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={() => editor?.chain().focus().toggleCode().run()}
-              >
-                Code
-              </button>
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={() => editor?.chain().focus().toggleCode().run()}
+                >
+                  Code
+                </button>
 
-              <button
-                className="rounded bg-zinc-800 px-3 py-2"
-                onClick={openImagePicker}
-              >
-                Add image
-              </button>
+                <button
+                  className="rounded bg-zinc-800 px-3 py-2"
+                  onClick={openImagePicker}
+                >
+                  Add image
+                </button>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={addImageFromFile}
-              />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={addImageFromFile}
+                />
+              </div>
+
+              {hasGeneratedPreview && (
+                <button
+                  className="shrink-0 rounded bg-zinc-800 px-3 py-2"
+                  onClick={() => setIsPreviewOpen(true)}
+                >
+                  Preview
+                </button>
+              )}
             </div>
 
-            <div className="editor min-h-[320px] rounded border border-zinc-700 bg-zinc-900 p-4">
+            <div className="editor min-h-[520px] rounded border border-zinc-700 bg-zinc-900 p-4">
               <EditorContent editor={editor} />
             </div>
           </div>
@@ -176,9 +191,26 @@ This is a temporary generated document. Next step: connect AI to rewrite this in
           >
             Generate Documentation
           </button>
+        </div>
+      </div>
 
-          {generatedMarkdown && (
-            <div className="mt-8 rounded border border-zinc-700 bg-zinc-900 p-6">
+      {isPreviewOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/10"
+            onClick={() => setIsPreviewOpen(false)}
+          />
+
+          <aside className="fixed right-0 top-0 z-50 h-screen w-2/3 border-l border-zinc-700 bg-zinc-900 shadow-2xl">
+            <button
+              className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded bg-zinc-800 text-2xl leading-none text-zinc-50 hover:bg-zinc-700"
+              onClick={() => setIsPreviewOpen(false)}
+              aria-label="Close preview"
+            >
+              ×
+            </button>
+
+            <div className="h-full overflow-y-auto p-10 pr-20">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold">Generated Documentation</h2>
 
@@ -218,9 +250,9 @@ This is a temporary generated document. Next step: connect AI to rewrite this in
                 </pre>
               )}
             </div>
-          )}
-        </div>
-      </div>
+          </aside>
+        </>
+      )}
     </main>
   );
 }
