@@ -1,22 +1,34 @@
 "use client";
 
+import { useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 
 export default function Home() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const editor = useEditor({
     extensions: [StarterKit, Image],
-    content: "<h2>Component overview</h2><p>Start writing your rough documentation here...</p>",
+    content:
+      "<h2>Component overview</h2><p>Start writing your rough documentation here...</p>",
     immediatelyRender: false,
   });
 
-  function addImage() {
-    const url = window.prompt("Image URL");
+  function openImagePicker() {
+    fileInputRef.current?.click();
+  }
 
-    if (url) {
-      editor?.chain().focus().setImage({ src: url }).run();
-    }
+  function addImageFromFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    editor?.chain().focus().setImage({ src: imageUrl }).run();
+
+    event.target.value = "";
   }
 
   return (
@@ -37,7 +49,9 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="mb-2 block font-medium">Documentation Draft</label>
+            <label className="mb-2 block font-medium">
+              Documentation Draft
+            </label>
 
             <div className="mb-3 flex flex-wrap gap-2">
               <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}>
@@ -58,12 +72,20 @@ export default function Home() {
               <button className="rounded bg-zinc-800 px-3 py-2" onClick={() => editor?.chain().focus().toggleCode().run()}>
                 Code
               </button>
-              <button className="rounded bg-zinc-800 px-3 py-2" onClick={addImage}>
+              <button className="rounded bg-zinc-800 px-3 py-2" onClick={openImagePicker}>
                 Add image
               </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={addImageFromFile}
+              />
             </div>
 
-            <div className="min-h-[320px] rounded border border-zinc-700 bg-zinc-900 p-4">
+            <div className="editor min-h-[320px] rounded border border-zinc-700 bg-zinc-900 p-4">
               <EditorContent editor={editor} />
             </div>
           </div>
