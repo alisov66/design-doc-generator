@@ -5,10 +5,15 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 
+type PreviewMode = "formatted" | "markdown";
+
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [componentName, setComponentName] = useState("");
   const [generatedMarkdown, setGeneratedMarkdown] = useState("");
+  const [generatedHtml, setGeneratedHtml] = useState("");
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("formatted");
 
   const editor = useEditor({
     extensions: [StarterKit, Image],
@@ -34,8 +39,9 @@ export default function Home() {
 
   function generateDocumentation() {
     const draftHtml = editor?.getHTML() || "";
+    const title = componentName || "Untitled Component";
 
-    const markdown = `# ${componentName || "Untitled Component"}
+    const markdown = `# ${title}
 
 ## Purpose
 
@@ -50,12 +56,27 @@ ${draftHtml}
 This is a temporary generated document. Next step: connect AI to rewrite this into clean Markdown.
 `;
 
+    const html = `
+      <h1>${title}</h1>
+
+      <h2>Purpose</h2>
+      <p>Describe what this component is for.</p>
+
+      <h2>Draft source</h2>
+      ${draftHtml}
+
+      <h2>Notes</h2>
+      <p>This is a temporary generated document. Next step: connect AI to rewrite this into clean Markdown.</p>
+    `;
+
     setGeneratedMarkdown(markdown);
+    setGeneratedHtml(html);
+    setPreviewMode("formatted");
   }
 
   return (
     <main className="min-h-screen bg-zinc-950 p-12 text-zinc-50">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <h1 className="mb-8 text-4xl font-bold">
           Design Documentation Generator
         </h1>
@@ -157,11 +178,45 @@ This is a temporary generated document. Next step: connect AI to rewrite this in
           </button>
 
           {generatedMarkdown && (
-            <div className="mt-8 rounded border border-zinc-700 bg-zinc-900 p-4">
-              <h2 className="mb-4 text-2xl font-bold">Generated Markdown</h2>
-              <pre className="whitespace-pre-wrap text-sm text-zinc-200">
-                {generatedMarkdown}
-              </pre>
+            <div className="mt-8 rounded border border-zinc-700 bg-zinc-900 p-6">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold">Generated Documentation</h2>
+
+                <div className="flex rounded bg-zinc-800 p-1">
+                  <button
+                    className={`rounded px-4 py-2 ${
+                      previewMode === "formatted"
+                        ? "bg-white text-black"
+                        : "text-zinc-300"
+                    }`}
+                    onClick={() => setPreviewMode("formatted")}
+                  >
+                    Formatted
+                  </button>
+
+                  <button
+                    className={`rounded px-4 py-2 ${
+                      previewMode === "markdown"
+                        ? "bg-white text-black"
+                        : "text-zinc-300"
+                    }`}
+                    onClick={() => setPreviewMode("markdown")}
+                  >
+                    Markdown
+                  </button>
+                </div>
+              </div>
+
+              {previewMode === "formatted" ? (
+                <article
+                  className="generated-document"
+                  dangerouslySetInnerHTML={{ __html: generatedHtml }}
+                />
+              ) : (
+                <pre className="whitespace-pre-wrap rounded bg-zinc-950 p-4 text-sm text-zinc-200">
+                  {generatedMarkdown}
+                </pre>
+              )}
             </div>
           )}
         </div>
